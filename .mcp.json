@@ -1,0 +1,16 @@
+{
+  "mcpServers": {
+    "my-server": {
+      "type": "stdio",
+      "command": "node",
+      "args": ["build/server.js"],
+      "cwd": ".",
+      "dev": {
+        "watch": "build/**/*.js",
+        "debug": {
+          "type": "node"
+        }
+      }
+    }
+  }
+}
