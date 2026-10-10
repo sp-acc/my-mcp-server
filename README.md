@@ -44,7 +44,13 @@ The server manages a user database backed by **PostgreSQL** (via [Drizzle ORM](h
    npm run db:up   # or: docker compose up -d db
    ```
 
-On startup the server connects to the database, creates the `users` table if it does not exist, and seeds it from `data/users.json` the first time (the seed is skipped once the table has data).
+4. Apply the database schema:
+
+   ```bash
+   npm run db:migrate
+   ```
+
+On startup the server connects to the database and seeds it from `data/users.json` the first time (the seed is skipped once the table has data). The schema is managed by Drizzle migrations in `src/db/migrations/`: after changing `src/db/schema.ts`, run `npm run db:generate` to emit a new migration and `npm run db:migrate` to apply it.
 
 ---
 
@@ -94,11 +100,16 @@ Existence of .mcp.json should be picked up by the agent and prompted to load the
 ```
 my-mcp-server/
 ├── src/
-│   ├── server.ts      # MCP server entry point (tools & resources)
-│   └── db.ts          # Postgres connection, schema, and seeding
+│   ├── server.ts        # MCP server entry point (tools & resources)
+│   ├── db.ts            # Postgres connection, startup checks, and seeding
+│   └── db/
+│       ├── schema.ts    # Drizzle table definitions
+│       └── migrations/  # Generated SQL migrations (committed)
 ├── data/
-│   └── users.json     # Seed data imported into Postgres on first start
-├── docker-compose.yml # Local Postgres container
+│   ├── users.json       # Seed data imported into Postgres on first start
+│   └── env.ts           # Env validation used by drizzle-kit
+├── drizzle.config.ts    # drizzle-kit configuration
+├── docker-compose.yml   # Local Postgres container
 ├── package.json
 └── tsconfig.json
 ```
@@ -111,6 +122,7 @@ my-mcp-server/
 |---|---|
 | `@modelcontextprotocol/sdk` | MCP server SDK (tools, resources, stdio transport) |
 | `drizzle-orm` | TypeScript ORM / query builder for Postgres |
+| `drizzle-kit` | Generates and applies SQL migrations |
 | `pg` | Postgres driver |
 | `zod` | Input schema validation for tools |
 | `dotenv` | Loads `.env` into `process.env` |
