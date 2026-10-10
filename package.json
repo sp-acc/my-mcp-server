@@ -8,7 +8,9 @@
     "server:build:watch": "tsc -w",
     "server:dev": "tsx src/server.ts",
     "server:inspect": "DANGEROUSLY_OMIT_AUTH=true npx @modelcontextprotocol/inspector npm run server:dev",
-    "db:up": "docker compose up -d db"
+    "db:up": "docker compose up -d db",
+    "db:migrate": "drizzle-kit migrate",
+    "db:generate": "drizzle-kit generate"
   },
   "keywords": [],
   "author": "",
@@ -17,6 +19,7 @@
     "@modelcontextprotocol/inspector": "^2.3.0",
     "@types/node": "^26.2.0",
     "@types/pg": "^8.23.1",
+    "drizzle-kit": "^0.31.11",
     "tsx": "^4.23.12",
     "typescript": "^7.0.2"
   },

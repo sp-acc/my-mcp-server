@@ -4,19 +4,14 @@ import path from "node:path";
 import pg from "pg";
 import { count, sql } from "drizzle-orm";
 import { drizzle } from "drizzle-orm/node-postgres";
-import { pgTable, serial, text } from "drizzle-orm/pg-core";
+import { users } from "./db/schema";
+
+// Re-exported for ./server.ts, which imports everything from this module.
+export { users };
 
 // Resolve config and seed data relative to this module, not the process cwd,
 // so the server keeps working when launched from any directory.
-dotenv.config({ path: path.resolve(__dirname, "../.env") });
-
-export const users = pgTable("users", {
-    id: serial("id").primaryKey(),
-    name: text("name").notNull(),
-    email: text("email").notNull(),
-    address: text("address"),
-    phone: text("phone"),
-});
+dotenv.config({ path: path.resolve(__dirname, "../.env"), quiet: true });
 
 const pool = new pg.Pool({
     host: process.env.DB_HOST,
@@ -27,18 +22,6 @@ const pool = new pg.Pool({
 });
 
 export const db = drizzle(pool);
-
-async function ensureSchema() {
-    await db.execute(sql`
-        CREATE TABLE IF NOT EXISTS users (
-            id SERIAL PRIMARY KEY,
-            name TEXT NOT NULL,
-            email TEXT NOT NULL,
-            address TEXT,
-            phone TEXT
-        )
-    `);
-}
 
 type SeedAddress = { street: string; city: string; state: string; zipCode: string };
 type SeedUser = {
@@ -90,9 +73,14 @@ export async function initDb() {
         console.error("[db] Is the container running? Try: docker compose up -d db");
         process.exit(1);
     }
-    await ensureSchema();
-    const seeded = await seedIfEmpty();
-    if (seeded > 0) {
-        console.error(`[db] Seeded ${seeded} users from data/users.json`);
+    try {
+        const seeded = await seedIfEmpty();
+        if (seeded > 0) {
+            console.error(`[db] Seeded ${seeded} users from data/users.json`);
+        }
+    } catch (err) {
+        console.error(`[db] Failed to initialize the database (${(err as Error).message})`);
+        console.error("[db] If the users table is missing, run migrations: npm run db:migrate");
+        process.exit(1);
     }
 }
