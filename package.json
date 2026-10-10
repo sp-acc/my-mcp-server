@@ -2,12 +2,13 @@
   "name": "mcp-example-run",
   "version": "1.0.0",
   "description": "",
-  "main": "index.js",
   "scripts": {
+    "start": "node build/server.js",
     "server:build": "tsc",
     "server:build:watch": "tsc -w",
     "server:dev": "tsx src/server.ts",
-    "server:inspect": "set DANGEROUSLY_OMIT_AUTH=true && npx @modelcontextprotocol/inspector npm run server:dev"
+    "server:inspect": "DANGEROUSLY_OMIT_AUTH=true npx @modelcontextprotocol/inspector npm run server:dev",
+    "db:up": "docker compose up -d db"
   },
   "keywords": [],
   "author": "",
@@ -15,6 +16,7 @@
   "devDependencies": {
     "@modelcontextprotocol/inspector": "^2.3.0",
     "@types/node": "^26.2.0",
+    "@types/pg": "^8.23.1",
     "tsx": "^4.23.12",
     "typescript": "^7.0.2"
   },
@@ -22,6 +24,8 @@
     "@inquirer/prompts": "^8.6.0",
     "@modelcontextprotocol/sdk": "^1.30.0",
     "dotenv": "^17.4.2",
+    "drizzle-orm": "^0.45.4",
+    "pg": "^8.23.1",
     "zod": "^4.4.3"
   }
 }

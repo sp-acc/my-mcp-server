@@ -2,14 +2,16 @@
 
 A playground and experimentation project for building an [MCP (Model Context Protocol)](https://modelcontextprotocol.io/) server using TypeScript. It demonstrates how to expose **tools** and **resources** to AI agents and language models via the stdio transport.
 
-The server manages a simple user database (backed by a local JSON file) and exposes endpoints that an AI agent can call to read or create user records.
+The server manages a user database backed by **PostgreSQL** (via [Drizzle ORM](https://orm.drizzle.team/)) and exposes tools and resources that an AI agent can call to read, create, update, and delete user records.
 
 ---
 
 ## Features
 
-- **Tool — `my-create-tool`**: Creates a new user by accepting `name`, `address`, `email`, and `phone` fields and persisting the record to `src/users.json`.
-- **Resource — `users://all`**: Returns the full list of users from the mock database as JSON.
+- **Tool — `create_user`**: Creates a new user from `name`, `email`, `address`, and `phone` fields (all required) and returns the created record with its database id.
+- **Tool — `update_user`**: Updates an existing user by id; at least one field must be provided and only the provided fields are changed.
+- **Tool — `delete_user`**: Deletes a user by id and returns the deleted record.
+- **Resource — `users://all`**: Returns the full list of users from the database as JSON.
 - **Resource — `users://{userId}/profile`**: Returns the profile of a single user identified by `userId`.
 
 ---
@@ -18,14 +20,31 @@ The server manages a simple user database (backed by a local JSON file) and expo
 
 - [Node.js](https://nodejs.org/) v18 or later
 - [npm](https://www.npmjs.com/) v9 or later
+- [Docker](https://www.docker.com/) (for the local Postgres database)
 
 ---
 
-## Installation
+## Setup
 
-```bash
-npm install
-```
+1. Install dependencies:
+
+   ```bash
+   npm install
+   ```
+
+2. Configure the database connection. Copy `.env.example` to `.env` and adjust the values if needed:
+
+   ```bash
+   cp .env.example .env
+   ```
+
+3. Start the Postgres container:
+
+   ```bash
+   npm run db:up   # or: docker compose up -d db
+   ```
+
+On startup the server connects to the database, creates the `users` table if it does not exist, and seeds it from `data/users.json` the first time (the seed is skipped once the table has data).
 
 ---
 
@@ -41,7 +60,7 @@ npm run server:dev
 
 ```bash
 npm run server:build   # compiles TypeScript → JavaScript
-node dist/server.js    # run the compiled server
+npm start              # run the compiled server
 ```
 
 ### Watch mode (auto-recompile on changes)
@@ -76,7 +95,10 @@ Existence of .mcp.json should be picked up by the agent and prompted to load the
 my-mcp-server/
 ├── src/
 │   ├── server.ts      # MCP server entry point (tools & resources)
-│   └── users.json     # Mock user database (read/written at runtime)
+│   └── db.ts          # Postgres connection, schema, and seeding
+├── data/
+│   └── users.json     # Seed data imported into Postgres on first start
+├── docker-compose.yml # Local Postgres container
 ├── package.json
 └── tsconfig.json
 ```
@@ -88,7 +110,10 @@ my-mcp-server/
 | Package | Role |
 |---|---|
 | `@modelcontextprotocol/sdk` | MCP server SDK (tools, resources, stdio transport) |
+| `drizzle-orm` | TypeScript ORM / query builder for Postgres |
+| `pg` | Postgres driver |
 | `zod` | Input schema validation for tools |
+| `dotenv` | Loads `.env` into `process.env` |
 | `tsx` | Run TypeScript directly without a build step |
 | `typescript` | TypeScript compiler |
 | `@modelcontextprotocol/inspector` | Browser-based MCP debug UI |
